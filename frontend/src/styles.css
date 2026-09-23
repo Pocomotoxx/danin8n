@@ -8,7 +8,8 @@ body { font-family: system-ui, -apple-system, "Segoe UI", sans-serif; color: #0f
   padding: 8px 14px; border-bottom: 1px solid #e2e8f0; background: #0f172a; color: #fff;
 }
 .topbar .sub { color: #94a3b8; font-size: 12px; }
-.status { font-size: 12px; padding: 2px 8px; border-radius: 6px; margin-left: auto; }
+.lang { margin-left: auto; padding: 3px 8px; font-size: 12px; cursor: pointer; border-radius: 6px; border: 1px solid #334155; background: #1e293b; color: #e2e8f0; }
+.status { font-size: 12px; padding: 2px 8px; border-radius: 6px; }
 .status.ok { background: #dcfce7; color: #166534; }
 .status.err { background: #fee2e2; color: #991b1b; }
 .status.info { background: #e0f2fe; color: #075985; }

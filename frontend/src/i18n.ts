@@ -1,0 +1,90 @@
+// Minimal i18n: a string table + a t() helper with {var} interpolation. No dependencies.
+
+export type Lang = "en" | "hu";
+
+type Entry = { en: string; hu: string };
+
+export const STRINGS: Record<string, Entry> = {
+  subtitle: {
+    en: "import a template → add company data → copy a ready workflow",
+    hu: "sablon behúzása → cégadatok megadása → kész workflow kimásolása",
+  },
+  buildTitle: { en: "🛠 Build with AI", hu: "🛠 Építés AI-val" },
+  buildPh: {
+    en: "Describe or change the workflow, e.g. 'watch a Gmail label, summarize new mail, post to Telegram'",
+    hu: "Írd le vagy módosítsd a workflow-t, pl. „figyeljen egy Gmail-címkét, foglalja össze az új leveleket, küldje Telegramra”",
+  },
+  model: { en: "model", hu: "modell" },
+  sendUpdate: { en: "Send (update workflow)", hu: "Küldés (workflow frissítése)" },
+  sendCreate: { en: "Send (create workflow)", hu: "Küldés (workflow létrehozása)" },
+  sendHint: {
+    en: "Ctrl/⌘+Enter to send. Needs a provider key (any LiteLLM model).",
+    hu: "Küldés: Ctrl/⌘+Enter. Provider-kulcs kell hozzá (bármely LiteLLM-modell).",
+  },
+  importTitle: { en: "1 · Import n8n workflow", hu: "1 · n8n workflow behúzása" },
+  tplLabel: { en: "Start from a template", hu: "Indulj egy sablonból" },
+  tplChoose: { en: "— choose a template ({n}) —", hu: "— válassz sablont ({n}) —" },
+  pastePh: { en: "…or paste an n8n workflow JSON here", hu: "…vagy illessz be ide egy n8n workflow JSON-t" },
+  loadSample: { en: "Load sample", hu: "Minta betöltése" },
+  inspect: { en: "Inspect", hu: "Vizsgálat" },
+  companyTitle: { en: "2 · Company data", hu: "2 · Cégadatok" },
+  aiTitle: { en: "AI-written fields", hu: "AI által írt mezők" },
+  fillLlm: { en: "Fill with an LLM", hu: "Kitöltés LLM-mel" },
+  credsSetup: { en: "Credentials to set up in n8n: {list}", hu: "Az n8n-ben beállítandó credentialök: {list}" },
+  generate: { en: "Generate workflow", hu: "Workflow generálása" },
+  intakeBtn: { en: "📋 Data-intake template", hu: "📋 Adatbekérő sablon" },
+  intakeTitle: { en: "📋 Data intake", hu: "📋 Adatbekérő" },
+  intakeHint: {
+    en: "Fill these before running. 🔒 secrets go into n8n's credential store — never here.",
+    hu: "Ezeket töltsd ki futtatás előtt. 🔒 a titkok az n8n credential-tárába mennek — sosem ide.",
+  },
+  dlEnv: { en: "⬇ .env", hu: "⬇ .env" },
+  dlChecklist: { en: "⬇ checklist.md", hu: "⬇ checklist.md" },
+  copyEnv: { en: "Copy .env", hu: ".env másolása" },
+  copyChecklist: { en: "Copy checklist", hu: "Checklist másolása" },
+  readyTitle: { en: "3 · Ready workflow", hu: "3 · Kész workflow" },
+  dlJson: { en: "⬇ .json", hu: "⬇ .json" },
+  copyJson: { en: "Copy JSON", hu: "JSON másolása" },
+  unresolved: { en: "Unresolved: {list}", hu: "Kitöltetlen: {list}" },
+  setupN8n: { en: "Set up in n8n: {list}", hu: "Állítsd be az n8n-ben: {list}" },
+  rightPlaceholder: {
+    en: "Inspect a workflow, add company data, then Generate to get a workflow you can paste into n8n.",
+    hu: "Vizsgálj meg egy workflow-t, add meg a cégadatokat, majd a Generálással kész workflow-t kapsz, amit az n8n-be illeszthetsz.",
+  },
+  // Status messages
+  stLoaded: { en: 'Loaded "{name}" — {n} nodes.', hu: '„{name}” betöltve — {n} node.' },
+  stGenerated: { en: "Generated. {n} AI field(s) filled.", hu: "Generálva. {n} AI-mező kitöltve." },
+  stInvalidJson: { en: "Invalid workflow JSON: {e}", hu: "Érvénytelen workflow JSON: {e}" },
+  stAiUpdated: { en: "Workflow updated by AI.", hu: "A workflow-t frissítette az AI." },
+  stCopied: { en: "Copied {label}.", hu: "{label} kimásolva." },
+  stDownloaded: { en: "Downloaded {file}.", hu: "{file} letöltve." },
+  stIntake: { en: "Data-intake template generated.", hu: "Adatbekérő sablon elkészült." },
+  stAiDefault: { en: "Updated the workflow.", hu: "A workflow frissült." },
+  lblEnvTemplate: { en: ".env template", hu: ".env sablon" },
+  lblChecklist: { en: "checklist", hu: "checklist" },
+};
+
+export function t(lang: Lang, key: keyof typeof STRINGS, vars?: Record<string, string | number>): string {
+  let s = STRINGS[key]?.[lang] ?? STRINGS[key]?.en ?? String(key);
+  if (vars) for (const [k, v] of Object.entries(vars)) s = s.split(`{${k}}`).join(String(v));
+  return s;
+}
+
+export function initialLang(): Lang {
+  try {
+    const saved = localStorage.getItem("lang");
+    if (saved === "en" || saved === "hu") return saved;
+    if (navigator.language?.toLowerCase().startsWith("hu")) return "hu";
+  } catch {
+    /* ignore */
+  }
+  return "en";
+}
+
+export function persistLang(lang: Lang): void {
+  try {
+    localStorage.setItem("lang", lang);
+  } catch {
+    /* ignore */
+  }
+}

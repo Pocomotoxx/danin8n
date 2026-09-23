@@ -13,6 +13,7 @@ import {
   type N8nWorkflow,
   type TemplateMeta,
 } from "./api";
+import { initialLang, persistLang, t, type Lang } from "./i18n";
 import { toGraph } from "./n8nGraph";
 
 const SAMPLE = `{
@@ -29,6 +30,7 @@ const SAMPLE = `{
 }`;
 
 export default function App() {
+  const [lang, setLang] = useState<Lang>(initialLang);
   const [raw, setRaw] = useState("");
   const [workflow, setWorkflow] = useState<N8nWorkflow | null>(null);
   const [insp, setInsp] = useState<Inspection | null>(null);
@@ -43,6 +45,13 @@ export default function App() {
   const [instruction, setInstruction] = useState("");
   const [buildModel, setBuildModel] = useState("anthropic/claude-sonnet-4-20250514");
   const [intake, setIntake] = useState<{ env: string; checklist: string } | null>(null);
+
+  const tr = (key: Parameters<typeof t>[1], vars?: Record<string, string | number>) => t(lang, key, vars);
+  const toggleLang = () => {
+    const next: Lang = lang === "en" ? "hu" : "en";
+    setLang(next);
+    persistLang(next);
+  };
 
   useEffect(() => {
     listTemplates()
@@ -67,7 +76,7 @@ export default function App() {
         for (const f of info.placeholders.fields) if (!(f in next)) next[f] = "";
         return next;
       });
-      setStatus({ kind: "ok", msg: `Loaded "${info.name}" — ${info.node_count} nodes.` });
+      setStatus({ kind: "ok", msg: tr("stLoaded", { name: info.name, n: info.node_count }) });
     } catch (e) {
       setStatus({ kind: "err", msg: String(e) });
     } finally {
@@ -79,7 +88,7 @@ export default function App() {
     try {
       inspectWorkflow(JSON.parse(raw) as N8nWorkflow);
     } catch (e) {
-      setStatus({ kind: "err", msg: `Invalid workflow JSON: ${String(e)}` });
+      setStatus({ kind: "err", msg: tr("stInvalidJson", { e: String(e) }) });
     }
   };
 
@@ -102,8 +111,7 @@ export default function App() {
     try {
       const res = await customize(workflow, profile, useLlm, useLlm ? model : undefined);
       setResult(res);
-      const n = Object.keys(res.report.ai_filled).length;
-      setStatus({ kind: "ok", msg: `Generated. ${n} AI field(s) filled.` });
+      setStatus({ kind: "ok", msg: tr("stGenerated", { n: Object.keys(res.report.ai_filled).length }) });
     } catch (e) {
       setStatus({ kind: "err", msg: String(e) });
     } finally {
@@ -111,15 +119,9 @@ export default function App() {
     }
   };
 
-  const copyJson = async () => {
-    if (!result) return;
-    await navigator.clipboard.writeText(JSON.stringify(result.workflow, null, 2));
-    setStatus({ kind: "info", msg: "Copied workflow JSON to clipboard." });
-  };
-
   const copyText = async (text: string, label: string) => {
     await navigator.clipboard.writeText(text);
-    setStatus({ kind: "info", msg: `Copied ${label}.` });
+    setStatus({ kind: "info", msg: tr("stCopied", { label }) });
   };
 
   const slug = () => {
@@ -136,7 +138,7 @@ export default function App() {
     a.click();
     a.remove();
     URL.revokeObjectURL(url);
-    setStatus({ kind: "info", msg: `Downloaded ${filename}.` });
+    setStatus({ kind: "info", msg: tr("stDownloaded", { file: filename }) });
   };
 
   const doIntake = async () => {
@@ -146,7 +148,7 @@ export default function App() {
     try {
       const res = await getIntake(wf);
       setIntake({ env: res.env, checklist: res.checklist });
-      setStatus({ kind: "ok", msg: "Data-intake template generated." });
+      setStatus({ kind: "ok", msg: tr("stIntake") });
     } catch (e) {
       setStatus({ kind: "err", msg: String(e) });
     } finally {
@@ -168,8 +170,8 @@ export default function App() {
         workflow: built,
         report: { workflow_name: built.name ?? "", fields_filled: {}, ai_filled: {}, unresolved: [], credentials_to_setup: [] },
       });
-      setChat((c) => [...c, { role: "ai", text: notes || "Updated the workflow." }]);
-      setStatus({ kind: "ok", msg: "Workflow updated by AI." });
+      setChat((c) => [...c, { role: "ai", text: notes || tr("stAiDefault") }]);
+      setStatus({ kind: "ok", msg: tr("stAiUpdated") });
     } catch (e) {
       setChat((c) => [...c, { role: "ai", text: `⚠️ ${String(e)}` }]);
       setStatus({ kind: "err", msg: String(e) });
@@ -182,13 +184,16 @@ export default function App() {
     <div className="app">
       <header className="topbar">
         <strong>n8n Workflow Factory</strong>
-        <span className="sub">import a template → add company data → copy a ready workflow</span>
+        <span className="sub">{tr("subtitle")}</span>
+        <button className="lang" onClick={toggleLang} title="Language / Nyelv">
+          {lang === "en" ? "🇭🇺 Magyar" : "🇬🇧 English"}
+        </button>
         {status && <span className={`status ${status.kind}`}>{status.msg}</span>}
       </header>
 
       <div className="body">
         <aside className="panel left">
-          <div className="section">🛠 Build with AI</div>
+          <div className="section">{tr("buildTitle")}</div>
           {chat.length > 0 && (
             <div className="chat">
               {chat.map((m, i) => (
@@ -198,27 +203,27 @@ export default function App() {
           )}
           <textarea
             className="chat-in"
-            placeholder="Describe or change the workflow, e.g. 'watch a Gmail label, summarize new mail, post to Telegram'"
+            placeholder={tr("buildPh")}
             value={instruction}
             onChange={(e) => setInstruction(e.target.value)}
             onKeyDown={(e) => {
               if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) doBuild();
             }}
           />
-          <label>model
+          <label>{tr("model")}
             <input value={buildModel} onChange={(e) => setBuildModel(e.target.value)} />
           </label>
           <button className="primary" disabled={busy || !instruction.trim()} onClick={doBuild}>
-            {result || workflow ? "Send (update workflow)" : "Send (create workflow)"}
+            {result || workflow ? tr("sendUpdate") : tr("sendCreate")}
           </button>
-          <p className="hint">Ctrl/⌘+Enter to send. Needs a provider key (any LiteLLM model).</p>
+          <p className="hint">{tr("sendHint")}</p>
 
-          <div className="section">1 · Import n8n workflow</div>
+          <div className="section">{tr("importTitle")}</div>
           {templates.length > 0 && (
             <label>
-              Start from a template
+              {tr("tplLabel")}
               <select defaultValue="" disabled={busy} onChange={(e) => loadTemplate(e.target.value)}>
-                <option value="">— choose a template ({templates.length}) —</option>
+                <option value="">{tr("tplChoose", { n: templates.length })}</option>
                 {templates.map((t) => (
                   <option key={t.file} value={t.file}>
                     {t.name} · {t.nodes} nodes
@@ -229,18 +234,18 @@ export default function App() {
           )}
           <textarea
             className="json-in"
-            placeholder="…or paste an n8n workflow JSON here"
+            placeholder={tr("pastePh")}
             value={raw}
             onChange={(e) => setRaw(e.target.value)}
           />
           <div className="row">
-            <button onClick={() => setRaw(SAMPLE)}>Load sample</button>
-            <button disabled={busy || !raw.trim()} onClick={doInspect}>Inspect</button>
+            <button onClick={() => setRaw(SAMPLE)}>{tr("loadSample")}</button>
+            <button disabled={busy || !raw.trim()} onClick={doInspect}>{tr("inspect")}</button>
           </div>
 
           {insp && (
             <>
-              <div className="section">2 · Company data</div>
+              <div className="section">{tr("companyTitle")}</div>
               {Object.keys(profile).map((f) => (
                 <label key={f}>
                   {f}
@@ -250,16 +255,16 @@ export default function App() {
 
               {insp.placeholders.ai.length > 0 && (
                 <>
-                  <div className="section">AI-written fields</div>
+                  <div className="section">{tr("aiTitle")}</div>
                   <ul className="ai-list">
                     {insp.placeholders.ai.map((a, i) => <li key={i}>{a}</li>)}
                   </ul>
                   <label className="check">
                     <input type="checkbox" checked={useLlm} onChange={(e) => setUseLlm(e.target.checked)} />
-                    Fill with an LLM
+                    {tr("fillLlm")}
                   </label>
                   {useLlm && (
-                    <label>model
+                    <label>{tr("model")}
                       <input value={model} onChange={(e) => setModel(e.target.value)} />
                     </label>
                   )}
@@ -267,12 +272,12 @@ export default function App() {
               )}
 
               {insp.credentials_needed.length > 0 && (
-                <p className="hint">Credentials to set up in n8n: {insp.credentials_needed.join(", ")}</p>
+                <p className="hint">{tr("credsSetup", { list: insp.credentials_needed.join(", ") })}</p>
               )}
 
-              <button className="primary" disabled={busy} onClick={doGenerate}>Generate workflow</button>
+              <button className="primary" disabled={busy} onClick={doGenerate}>{tr("generate")}</button>
               <button disabled={busy} onClick={doIntake} style={{ width: "100%", marginTop: 8 }}>
-                📋 Data-intake template
+                {tr("intakeBtn")}
               </button>
             </>
           )}
@@ -288,36 +293,36 @@ export default function App() {
         <aside className="panel right">
           {intake && (
             <>
-              <div className="section">📋 Data intake</div>
+              <div className="section">{tr("intakeTitle")}</div>
               <div className="files">
-                <button onClick={() => download(`${slug()}.env`, intake.env)}>⬇ .env</button>
-                <button onClick={() => download(`${slug()}-checklist.md`, intake.checklist, "text/markdown;charset=utf-8")}>⬇ checklist.md</button>
-                <button onClick={() => copyText(intake.env, ".env template")}>Copy .env</button>
-                <button onClick={() => copyText(intake.checklist, "checklist")}>Copy checklist</button>
+                <button onClick={() => download(`${slug()}.env`, intake.env)}>{tr("dlEnv")}</button>
+                <button onClick={() => download(`${slug()}-checklist.md`, intake.checklist, "text/markdown;charset=utf-8")}>{tr("dlChecklist")}</button>
+                <button onClick={() => copyText(intake.env, tr("lblEnvTemplate"))}>{tr("copyEnv")}</button>
+                <button onClick={() => copyText(intake.checklist, tr("lblChecklist"))}>{tr("copyChecklist")}</button>
               </div>
-              <p className="hint">Fill these before running. 🔒 secrets go into n8n's credential store — never here.</p>
+              <p className="hint">{tr("intakeHint")}</p>
               <pre className="code" style={{ maxHeight: "40vh" }}>{intake.checklist}</pre>
             </>
           )}
           {result ? (
             <>
               <div className="section">
-                3 · Ready workflow
+                {tr("readyTitle")}
                 <span>
-                  <button onClick={() => download(`${slug()}.json`, JSON.stringify(result.workflow, null, 2), "application/json")}>⬇ .json</button>{" "}
-                  <button onClick={copyJson}>Copy JSON</button>
+                  <button onClick={() => download(`${slug()}.json`, JSON.stringify(result.workflow, null, 2), "application/json")}>{tr("dlJson")}</button>{" "}
+                  <button onClick={() => copyText(JSON.stringify(result.workflow, null, 2), "JSON")}>{tr("copyJson")}</button>
                 </span>
               </div>
               {result.report.unresolved.length > 0 && (
-                <p className="warn">Unresolved: {result.report.unresolved.join(", ")}</p>
+                <p className="warn">{tr("unresolved", { list: result.report.unresolved.join(", ") })}</p>
               )}
               {result.report.credentials_to_setup.length > 0 && (
-                <p className="hint">Set up in n8n: {result.report.credentials_to_setup.join(", ")}</p>
+                <p className="hint">{tr("setupN8n", { list: result.report.credentials_to_setup.join(", ") })}</p>
               )}
               <pre className="code">{JSON.stringify(result.workflow, null, 2)}</pre>
             </>
           ) : (
-            <p className="hint">Inspect a workflow, add company data, then Generate to get a workflow you can paste into n8n.</p>
+            !intake && <p className="hint">{tr("rightPlaceholder")}</p>
           )}
         </aside>
       </div>
