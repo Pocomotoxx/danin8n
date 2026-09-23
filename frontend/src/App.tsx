@@ -122,6 +122,23 @@ export default function App() {
     setStatus({ kind: "info", msg: `Copied ${label}.` });
   };
 
+  const slug = () => {
+    const name = result?.workflow.name ?? workflow?.name ?? "workflow";
+    return name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") || "workflow";
+  };
+
+  const download = (filename: string, text: string, type = "text/plain;charset=utf-8") => {
+    const url = URL.createObjectURL(new Blob([text], { type }));
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+    setStatus({ kind: "info", msg: `Downloaded ${filename}.` });
+  };
+
   const doIntake = async () => {
     const wf = result?.workflow ?? workflow;
     if (!wf) return;
@@ -271,12 +288,12 @@ export default function App() {
         <aside className="panel right">
           {intake && (
             <>
-              <div className="section">
-                📋 Data intake
-                <span>
-                  <button onClick={() => copyText(intake.env, ".env template")}>Copy .env</button>{" "}
-                  <button onClick={() => copyText(intake.checklist, "checklist")}>Copy checklist</button>
-                </span>
+              <div className="section">📋 Data intake</div>
+              <div className="files">
+                <button onClick={() => download(`${slug()}.env`, intake.env)}>⬇ .env</button>
+                <button onClick={() => download(`${slug()}-checklist.md`, intake.checklist, "text/markdown;charset=utf-8")}>⬇ checklist.md</button>
+                <button onClick={() => copyText(intake.env, ".env template")}>Copy .env</button>
+                <button onClick={() => copyText(intake.checklist, "checklist")}>Copy checklist</button>
               </div>
               <p className="hint">Fill these before running. 🔒 secrets go into n8n's credential store — never here.</p>
               <pre className="code" style={{ maxHeight: "40vh" }}>{intake.checklist}</pre>
@@ -284,7 +301,13 @@ export default function App() {
           )}
           {result ? (
             <>
-              <div className="section">3 · Ready workflow <button onClick={copyJson}>Copy JSON</button></div>
+              <div className="section">
+                3 · Ready workflow
+                <span>
+                  <button onClick={() => download(`${slug()}.json`, JSON.stringify(result.workflow, null, 2), "application/json")}>⬇ .json</button>{" "}
+                  <button onClick={copyJson}>Copy JSON</button>
+                </span>
+              </div>
               {result.report.unresolved.length > 0 && (
                 <p className="warn">Unresolved: {result.report.unresolved.join(", ")}</p>
               )}
