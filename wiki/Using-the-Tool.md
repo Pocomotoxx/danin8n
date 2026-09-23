@@ -37,6 +37,14 @@ Click **📋 Data-intake template**. You get a checklist of everything the workf
 Download the **`.env`** template and the **checklist.md**, or copy them. Secrets are never stored
 here — they go into n8n (see [n8n setup](n8n-Setup.md)).
 
+## Preview (sandbox)
+
+Click **▶ Preview (sandbox)** to see, step by step, what the workflow **would** do — before touching
+n8n. It walks the workflow from its trigger and describes each node with sample data and a colour-
+coded badge: **trigger**, **transform**, **external call**, **AI**, and **sends/writes**. Nothing is
+executed and no credentials are used; side-effect steps (send e-mail, post message, write a sheet)
+are clearly marked *"Simulated only — nothing is actually sent."* Use it to sanity-check the flow.
+
 ## 5. Export
 
 In **3 · Ready workflow**, use **⬇ .json** to download the workflow (or **Copy JSON**). Import it

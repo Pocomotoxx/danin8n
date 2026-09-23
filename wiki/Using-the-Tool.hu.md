@@ -38,6 +38,14 @@ igényel:
 Töltsd le a **`.env`** sablont és a **checklist.md**-t, vagy másold ki őket. A titkok itt sosem
 tárolódnak — az n8n-be kerülnek (lásd [n8n beállítás](n8n-Setup.hu.md)).
 
+## Előnézet (sandbox)
+
+Kattints a **▶ Preview (sandbox)** gombra, hogy lépésről lépésre lásd, mit **csinálna** a workflow —
+még mielőtt hozzányúlnál az n8n-hez. Végigvezet a triggertől, és minden node-ot leír minta-adatokkal
+és színkódolt jelöléssel: **indító**, **átalakítás**, **külső hívás**, **AI** és **küld/ír**. Semmi
+nem fut le, credential sem kell; a kifelé ható lépéseket (e-mail-küldés, üzenet, táblázatba írás)
+egyértelműen jelöli: *„Simulated only — nothing is actually sent."* Jó a folyamat ellenőrzésére.
+
 ## 5. Export
 
 A **3 · Ready workflow** résznél a **⬇ .json** gombbal letöltöd a workflow-t (vagy **Copy JSON**).
