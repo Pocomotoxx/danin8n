@@ -71,3 +71,16 @@ export const buildWorkflow = (instruction: string, workflow: N8nWorkflow | null,
 
 export const getIntake = (workflow: N8nWorkflow) =>
   post<{ intake: unknown; env: string; checklist: string }>("/api/intake", { workflow });
+
+export interface SimStep {
+  order: number;
+  node: string;
+  type: string;
+  effect: string;
+  action: string;
+  note: string;
+  sample: Record<string, unknown>;
+}
+
+export const simulate = (workflow: N8nWorkflow) =>
+  post<{ steps: SimStep[] }>("/api/simulate", { workflow });

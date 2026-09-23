@@ -8,9 +8,11 @@ import {
   getTemplate,
   inspect,
   listTemplates,
+  simulate,
   type CustomizeResult,
   type Inspection,
   type N8nWorkflow,
+  type SimStep,
   type TemplateMeta,
 } from "./api";
 import { initialLang, persistLang, t, type Lang } from "./i18n";
@@ -45,8 +47,18 @@ export default function App() {
   const [instruction, setInstruction] = useState("");
   const [buildModel, setBuildModel] = useState("anthropic/claude-sonnet-4-20250514");
   const [intake, setIntake] = useState<{ env: string; checklist: string } | null>(null);
+  const [sim, setSim] = useState<SimStep[] | null>(null);
 
   const tr = (key: Parameters<typeof t>[1], vars?: Record<string, string | number>) => t(lang, key, vars);
+  const effKey = (e: string): Parameters<typeof t>[1] =>
+    (({
+      trigger: "effTrigger",
+      transform: "effTransform",
+      external: "effExternal",
+      "side-effect": "effSide-effect",
+      ai: "effAi",
+      read: "effRead",
+    } as Record<string, Parameters<typeof t>[1]>)[e] ?? "effTransform");
   const toggleLang = () => {
     const next: Lang = lang === "en" ? "hu" : "en";
     setLang(next);
@@ -139,6 +151,21 @@ export default function App() {
     a.remove();
     URL.revokeObjectURL(url);
     setStatus({ kind: "info", msg: tr("stDownloaded", { file: filename }) });
+  };
+
+  const doSimulate = async () => {
+    const wf = result?.workflow ?? workflow;
+    if (!wf) return;
+    setBusy(true);
+    try {
+      const res = await simulate(wf);
+      setSim(res.steps);
+      setStatus({ kind: "ok", msg: tr("stPreview", { n: res.steps.length }) });
+    } catch (e) {
+      setStatus({ kind: "err", msg: String(e) });
+    } finally {
+      setBusy(false);
+    }
   };
 
   const doIntake = async () => {
@@ -279,6 +306,9 @@ export default function App() {
               <button disabled={busy} onClick={doIntake} style={{ width: "100%", marginTop: 8 }}>
                 {tr("intakeBtn")}
               </button>
+              <button disabled={busy} onClick={doSimulate} style={{ width: "100%", marginTop: 8 }}>
+                {tr("previewBtn")}
+              </button>
             </>
           )}
         </aside>
@@ -291,6 +321,27 @@ export default function App() {
         </main>
 
         <aside className="panel right">
+          {sim && (
+            <>
+              <div className="section">{tr("previewTitle")}</div>
+              <p className="hint">{tr("previewHint")}</p>
+              <ol className="sim">
+                {sim.map((s) => (
+                  <li key={s.order} className={`sim-step eff-${s.effect}`}>
+                    <div className="sim-head">
+                      <strong>{s.node}</strong>
+                      <span className="badge">{tr(effKey(s.effect))}</span>
+                    </div>
+                    <div className="sim-action">{s.action}</div>
+                    {s.note && <div className="sim-note">⚠️ {s.note}</div>}
+                    {Object.keys(s.sample).length > 0 && (
+                      <div className="sim-sample">{JSON.stringify(s.sample)}</div>
+                    )}
+                  </li>
+                ))}
+              </ol>
+            </>
+          )}
           {intake && (
             <>
               <div className="section">{tr("intakeTitle")}</div>
@@ -322,7 +373,7 @@ export default function App() {
               <pre className="code">{JSON.stringify(result.workflow, null, 2)}</pre>
             </>
           ) : (
-            !intake && <p className="hint">{tr("rightPlaceholder")}</p>
+            !intake && !sim && <p className="hint">{tr("rightPlaceholder")}</p>
           )}
         </aside>
       </div>

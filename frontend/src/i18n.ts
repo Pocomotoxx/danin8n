@@ -62,6 +62,19 @@ export const STRINGS: Record<string, Entry> = {
   stAiDefault: { en: "Updated the workflow.", hu: "A workflow frissült." },
   lblEnvTemplate: { en: ".env template", hu: ".env sablon" },
   lblChecklist: { en: "checklist", hu: "checklist" },
+  previewBtn: { en: "▶ Preview (sandbox)", hu: "▶ Előnézet (sandbox)" },
+  previewTitle: { en: "▶ Dry-run preview", hu: "▶ Száraz előnézet" },
+  previewHint: {
+    en: "What the workflow would do, step by step. Nothing is executed — side-effect steps are only simulated.",
+    hu: "Mit csinálna a workflow, lépésről lépésre. Semmi nem fut le — a kifelé ható lépések csak szimuláltak.",
+  },
+  stPreview: { en: "Preview generated ({n} steps).", hu: "Előnézet kész ({n} lépés)." },
+  effTrigger: { en: "trigger", hu: "indító" },
+  effTransform: { en: "transform", hu: "átalakítás" },
+  effExternal: { en: "external call", hu: "külső hívás" },
+  "effSide-effect": { en: "sends/writes", hu: "küld/ír" },
+  effAi: { en: "AI", hu: "AI" },
+  effRead: { en: "reads", hu: "olvas" },
 };
 
 export function t(lang: Lang, key: keyof typeof STRINGS, vars?: Record<string, string | number>): string {
