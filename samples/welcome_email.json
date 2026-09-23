@@ -1,0 +1,52 @@
+{
+  "name": "New lead welcome email",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "new-lead"
+      },
+      "name": "New Lead Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            { "name": "subject", "value": "[[ai: write a short friendly welcome email subject line]]" },
+            { "name": "body", "value": "Hi {{ $json.name }},\n\n[[ai: write a warm 2-sentence welcome message inviting the lead to explore the product]]\n\nVisit us at [[website]].\n\n— The [[company_name]] team" }
+          ]
+        }
+      },
+      "name": "Compose Email",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 2,
+      "position": [480, 300]
+    },
+    {
+      "parameters": {
+        "fromEmail": "[[from_email]]",
+        "toEmail": "={{ $json.email }}",
+        "subject": "={{ $json.subject }}",
+        "text": "={{ $json.body }}"
+      },
+      "name": "Send Email",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2,
+      "position": [720, 300],
+      "credentials": {
+        "smtp": { "name": "Company SMTP" }
+      }
+    }
+  ],
+  "connections": {
+    "New Lead Webhook": {
+      "main": [[{ "node": "Compose Email", "type": "main", "index": 0 }]]
+    },
+    "Compose Email": {
+      "main": [[{ "node": "Send Email", "type": "main", "index": 0 }]]
+    }
+  }
+}

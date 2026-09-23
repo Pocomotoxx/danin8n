@@ -1,0 +1,171 @@
+[
+  {
+    "file": "ai-news-digest.json",
+    "name": "Daily AI News Digest with Summary and Image to Telegram",
+    "nodes": 8,
+    "credentials": [],
+    "integrations": [
+      "ai:openAi",
+      "code",
+      "httpRequest",
+      "scheduleTrigger",
+      "set",
+      "telegram"
+    ],
+    "placeholders": []
+  },
+  {
+    "file": "daily-weather-report.json",
+    "name": "Daily Morning Weather Report with Personalized Email",
+    "nodes": 5,
+    "credentials": [],
+    "integrations": [
+      "ai:openAi",
+      "gmail",
+      "openWeatherMap",
+      "scheduleTrigger",
+      "set"
+    ],
+    "placeholders": []
+  },
+  {
+    "file": "email-summary.json",
+    "name": "Monday Morning Email Action Items and Priorities Summary",
+    "nodes": 9,
+    "credentials": [],
+    "integrations": [
+      "ai:agent",
+      "ai:lmChatOpenAi",
+      "ai:outputParserStructured",
+      "gmail",
+      "scheduleTrigger",
+      "set"
+    ],
+    "placeholders": []
+  },
+  {
+    "file": "extract-from-file.json",
+    "name": "File Upload Data Extraction and Distribution System",
+    "nodes": 9,
+    "credentials": [],
+    "integrations": [
+      "code",
+      "dataTable",
+      "extractFromFile",
+      "formTrigger",
+      "gmail",
+      "set",
+      "switch"
+    ],
+    "placeholders": []
+  },
+  {
+    "file": "google-sheets-processing.json",
+    "name": "Google Sheets Customer Data Enrichment with API Integration",
+    "nodes": 10,
+    "credentials": [],
+    "integrations": [
+      "googleSheets",
+      "httpRequest",
+      "if",
+      "scheduleTrigger",
+      "set",
+      "splitInBatches",
+      "wait"
+    ],
+    "placeholders": []
+  },
+  {
+    "file": "invoice-pipeline.json",
+    "name": "Automated Invoice Processing and Weekly Spending Report System",
+    "nodes": 15,
+    "credentials": [],
+    "integrations": [
+      "ai:openAi",
+      "code",
+      "dataTable",
+      "extractFromFile",
+      "formTrigger",
+      "gmail",
+      "if",
+      "scheduleTrigger",
+      "set"
+    ],
+    "placeholders": []
+  },
+  {
+    "file": "lead-qualification.json",
+    "name": "AI-Powered Lead Generation Form with Automated Qualification and Calendar Booking",
+    "nodes": 9,
+    "credentials": [],
+    "integrations": [
+      "ai:agent",
+      "ai:lmChatAnthropic",
+      "ai:outputParserStructured",
+      "dataTable",
+      "formTrigger",
+      "gmail",
+      "googleCalendar",
+      "if",
+      "set"
+    ],
+    "placeholders": []
+  },
+  {
+    "file": "multi-agent-research.json",
+    "name": "Multi-Agent Research, Fact-Check, and HTML Email Report Generator",
+    "nodes": 18,
+    "credentials": [],
+    "integrations": [
+      "ai:agent",
+      "ai:agentTool",
+      "ai:lmChatOpenAi",
+      "ai:outputParserStructured",
+      "gmail",
+      "manualTrigger",
+      "set"
+    ],
+    "placeholders": []
+  },
+  {
+    "file": "rag-assistant.json",
+    "name": "Document Upload RAG Chatbot with Pinecone and Daily Analytics",
+    "nodes": 17,
+    "credentials": [],
+    "integrations": [
+      "ai:agent",
+      "ai:chatTrigger",
+      "ai:documentDefaultDataLoader",
+      "ai:embeddingsOpenAi",
+      "ai:lmChatOpenAi",
+      "ai:memoryBufferWindow",
+      "ai:textSplitterRecursiveCharacterTextSplitter",
+      "ai:vectorStorePinecone",
+      "code",
+      "dataTable",
+      "formTrigger",
+      "gmail",
+      "scheduleTrigger",
+      "set"
+    ],
+    "placeholders": []
+  },
+  {
+    "file": "youtube-auto-chapters.json",
+    "name": "YouTube Video Chapter Generator from Captions with AI",
+    "nodes": 12,
+    "credentials": [],
+    "integrations": [
+      "ai:agent",
+      "ai:chatTrigger",
+      "ai:lmChatAnthropic",
+      "ai:outputParserStructured",
+      "code",
+      "httpRequest",
+      "respondToWebhook",
+      "set",
+      "youTube"
+    ],
+    "placeholders": []
+  }
+]

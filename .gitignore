@@ -1,0 +1,12 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+
+# Node / frontend build (frontend/ has its own .gitignore too)
+node_modules/
+dist/
+
+# Env / secrets
+.env
