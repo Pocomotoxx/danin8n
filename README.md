@@ -1,59 +1,53 @@
 # n8n Workflow Factory
 
-A lean tool for marketers: **import an n8n workflow template, add your company data, and copy a
-ready-to-import workflow into n8n.** No OpenAI SDK — the runtime is n8n; the optional AI step goes
-through LiteLLM (any provider).
+🇬🇧 English · [🇭🇺 Magyar](README.hu.md)
 
-## How it works
+A lean, single-user tool: **import an n8n workflow template, add your company data, and copy or
+download a ready-to-import workflow for n8n.** No OpenAI SDK — the runtime is n8n; the optional AI
+steps go through LiteLLM (any provider).
 
-1. **Import** — paste an n8n workflow JSON (a template). Templates mark fillable spots with
-   `[[field]]` (from company data) and `[[ai: instruction]]` (written by an LLM). These use double
-   square brackets, so they never collide with n8n's own `{{ $json… }}` expressions.
-2. **Add company data** — the tool auto-detects the `[[field]]` placeholders and shows a form.
-3. **Generate** — field placeholders are filled deterministically; `[[ai:…]]` placeholders are
-   written by an LLM using the company as context (optional — needs a provider key). n8n expressions
-   are preserved untouched.
-4. **Copy** — copy the finished workflow JSON and paste it into n8n. The tool lists which
-   **credentials** to set up there.
+## What it does
 
-Secrets are never stored: real API keys live in n8n's own credential store. This tool only
-references credential slots by name.
+1. **Build with AI** — describe a workflow in plain language and refine it over several turns; an
+   LLM returns an updated, validated n8n workflow each time.
+2. **Templates** — start from one of 10 curated n8n workflows.
+3. **Customize** — fill company data into `[[field]]` placeholders; let an LLM write `[[ai: …]]`
+   text; n8n's own `{{ $json… }}` expressions are preserved.
+4. **Data intake** — generate a checklist and `.env` template of everything the workflow needs
+   (API keys, e-mails, passwords, credentials), with secrets clearly flagged.
+5. **Export** — copy or download the finished workflow as `.json` and import it into n8n.
 
-## Run it
+## Documentation (bilingual)
+
+Full step-by-step guides live in the [`wiki/`](wiki/) folder, in English and Hungarian:
+
+- **[Home](wiki/Home.md)** · [Kezdőlap](wiki/Home.hu.md)
+- **[Installation](wiki/Installation.md)** · [Telepítés](wiki/Installation.hu.md)
+- **[Using the tool](wiki/Using-the-Tool.md)** · [Az eszköz használata](wiki/Using-the-Tool.hu.md)
+- **[n8n setup, step by step](wiki/n8n-Setup.md)** · [n8n beállítás lépésről lépésre](wiki/n8n-Setup.hu.md)
+- **[Providers (LLM keys)](wiki/Providers.md)** · [Providerek (LLM-kulcsok)](wiki/Providers.hu.md)
+- **[Troubleshooting](wiki/Troubleshooting.md)** · [Hibaelhárítás](wiki/Troubleshooting.hu.md)
+
+## Quick start
 
 ```bash
-# Backend
-python -m venv .venv && . .venv/bin/activate        # Windows: .venv\Scripts\Activate.ps1
+python -m venv .venv && . .venv/bin/activate          # Windows: .venv\Scripts\Activate.ps1
 pip install -r requirements.txt
-
-# Frontend (build once; the backend then serves it from the same origin)
 cd frontend && npm install && npm run build && cd ..
-
-uvicorn backend.app:app --port 8000                 # open http://localhost:8000
+uvicorn backend.app:app --port 8000                    # open http://localhost:8000
 ```
 
-For AI-written fields, configure any LiteLLM provider (no OpenAI required), e.g.:
+For AI features, set any LiteLLM provider key (no OpenAI required), e.g.
+`export ANTHROPIC_API_KEY=sk-ant-...` and use a model like `anthropic/claude-sonnet-4-20250514`.
 
-```bash
-export ANTHROPIC_API_KEY=sk-ant-...
-# then in the UI: tick "Fill with an LLM" and set the model, e.g. anthropic/claude-sonnet-4-20250514
-```
+## Security
 
-Frontend dev with hot reload: `uvicorn ... --port 8000` in one terminal, `cd frontend && npm run dev`
-in another (Vite proxies `/api` to the backend).
-
-## Architecture
-
-- `backend/n8n.py` — parse/validate an n8n workflow; find and substitute `[[…]]` placeholders.
-- `backend/customize.py` — fill fields from the company profile; fill `[[ai:…]]` via an LLM; report
-  what was filled, what is unresolved, and which credentials to set up.
-- `backend/llm.py` — provider-agnostic LLM via LiteLLM (injectable; offline `EchoCompleter` for tests).
-- `backend/app.py` — FastAPI: `/api/inspect`, `/api/customize`; serves the built SPA.
-- `frontend/` — Vite + React + React Flow: import, company form, workflow graph, ready JSON.
-- `samples/welcome_email.json` — an example template with both placeholder kinds.
+Secrets are never stored: the tool deals in credential *names* and field names only. Real API keys
+and passwords go into n8n's own credential store — never into this tool. See
+[n8n setup](wiki/n8n-Setup.md).
 
 ## Test
 
 ```bash
-pytest -q        # fully offline (no provider calls)
+pytest -q        # 21 offline tests, no provider calls
 ```
