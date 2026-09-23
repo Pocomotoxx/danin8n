@@ -68,3 +68,6 @@ export const customize = (
 
 export const buildWorkflow = (instruction: string, workflow: N8nWorkflow | null, model?: string) =>
   post<{ workflow: N8nWorkflow; notes: string }>("/api/build", { instruction, workflow, model });
+
+export const getIntake = (workflow: N8nWorkflow) =>
+  post<{ intake: unknown; env: string; checklist: string }>("/api/intake", { workflow });

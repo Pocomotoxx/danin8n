@@ -4,6 +4,7 @@ import { Background, Controls, ReactFlow } from "@xyflow/react";
 import {
   buildWorkflow,
   customize,
+  getIntake,
   getTemplate,
   inspect,
   listTemplates,
@@ -41,6 +42,7 @@ export default function App() {
   const [chat, setChat] = useState<{ role: "you" | "ai"; text: string }[]>([]);
   const [instruction, setInstruction] = useState("");
   const [buildModel, setBuildModel] = useState("anthropic/claude-sonnet-4-20250514");
+  const [intake, setIntake] = useState<{ env: string; checklist: string } | null>(null);
 
   useEffect(() => {
     listTemplates()
@@ -113,6 +115,26 @@ export default function App() {
     if (!result) return;
     await navigator.clipboard.writeText(JSON.stringify(result.workflow, null, 2));
     setStatus({ kind: "info", msg: "Copied workflow JSON to clipboard." });
+  };
+
+  const copyText = async (text: string, label: string) => {
+    await navigator.clipboard.writeText(text);
+    setStatus({ kind: "info", msg: `Copied ${label}.` });
+  };
+
+  const doIntake = async () => {
+    const wf = result?.workflow ?? workflow;
+    if (!wf) return;
+    setBusy(true);
+    try {
+      const res = await getIntake(wf);
+      setIntake({ env: res.env, checklist: res.checklist });
+      setStatus({ kind: "ok", msg: "Data-intake template generated." });
+    } catch (e) {
+      setStatus({ kind: "err", msg: String(e) });
+    } finally {
+      setBusy(false);
+    }
   };
 
   const doBuild = async () => {
@@ -232,6 +254,9 @@ export default function App() {
               )}
 
               <button className="primary" disabled={busy} onClick={doGenerate}>Generate workflow</button>
+              <button disabled={busy} onClick={doIntake} style={{ width: "100%", marginTop: 8 }}>
+                📋 Data-intake template
+              </button>
             </>
           )}
         </aside>
@@ -244,6 +269,19 @@ export default function App() {
         </main>
 
         <aside className="panel right">
+          {intake && (
+            <>
+              <div className="section">
+                📋 Data intake
+                <span>
+                  <button onClick={() => copyText(intake.env, ".env template")}>Copy .env</button>{" "}
+                  <button onClick={() => copyText(intake.checklist, "checklist")}>Copy checklist</button>
+                </span>
+              </div>
+              <p className="hint">Fill these before running. 🔒 secrets go into n8n's credential store — never here.</p>
+              <pre className="code" style={{ maxHeight: "40vh" }}>{intake.checklist}</pre>
+            </>
+          )}
           {result ? (
             <>
               <div className="section">3 · Ready workflow <button onClick={copyJson}>Copy JSON</button></div>

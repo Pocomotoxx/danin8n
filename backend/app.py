@@ -21,6 +21,7 @@ from pydantic import BaseModel
 
 from .build import build_workflow
 from .customize import AI_PREFIX, customize_workflow
+from .intake import build_intake, render_checklist, render_env, to_dict
 from .llm import EchoCompleter, LiteLLMCompleter
 from .n8n import WorkflowError, inspect_workflow, parse_workflow
 
@@ -112,6 +113,22 @@ def customize(req: CustomizeRequest) -> dict[str, Any]:
 def customize_preview(req: CustomizeRequest) -> dict[str, Any]:
     result = customize_workflow(req.workflow, req.profile, completer=EchoCompleter())
     return {"workflow": result.workflow, "report": {"ai_filled": result.report.ai_filled}}
+
+
+# --- Data intake template ---------------------------------------------------------------------
+
+
+@app.post("/api/intake")
+def intake(req: InspectRequest) -> dict[str, Any]:
+    try:
+        result = build_intake(req.workflow)
+    except WorkflowError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    return {
+        "intake": to_dict(result),
+        "env": render_env(result),
+        "checklist": render_checklist(result),
+    }
 
 
 # --- Iterative AI builder ---------------------------------------------------------------------
