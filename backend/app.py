@@ -19,7 +19,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
-from .build import build_workflow
+from .build import build_workflow, heuristic_build
 from .customize import AI_PREFIX, customize_workflow
 from .intake import build_intake, render_checklist, render_env, to_dict
 from .simulate import simulate_workflow, to_dicts
@@ -153,6 +153,9 @@ class BuildRequest(BaseModel):
     model: str | None = None
 
 
+_NO_KEY_MARKERS = ("credential", "api key", "api_key", "apikey", "auth", "missing", "openaiexception")
+
+
 @app.post("/api/build")
 def build(req: BuildRequest) -> dict[str, Any]:
     if not req.instruction.strip():
@@ -160,11 +163,17 @@ def build(req: BuildRequest) -> dict[str, Any]:
     try:
         completer = LiteLLMCompleter(model=req.model)
         result = build_workflow(req.workflow, req.instruction, completer=completer)
+        return {"workflow": result.workflow, "notes": result.notes, "demo": False}
     except WorkflowError as exc:
         raise HTTPException(status_code=422, detail=f"Model output invalid: {exc}") from exc
-    except Exception as exc:  # provider/key/parse errors surfaced cleanly
+    except Exception as exc:
+        # No provider key configured (or the provider is unreachable): fall back to the rule-based
+        # builder so the feature is usable without paying for an API key.
+        if any(m in str(exc).lower() for m in _NO_KEY_MARKERS):
+            result = heuristic_build(req.workflow, req.instruction)
+            note = "Demo mode (no LLM key — rule-based build). " + result.notes
+            return {"workflow": result.workflow, "notes": note, "demo": True}
         raise HTTPException(status_code=502, detail=f"Build failed: {exc}") from exc
-    return {"workflow": result.workflow, "notes": result.notes}
 
 
 # --- Template library (curated n8n workflows shipped with the tool) ---------------------------

@@ -69,3 +69,66 @@ def build_workflow(
     parse_workflow(workflow)  # raises WorkflowError if the model produced something invalid
     notes = str(payload.get("notes", "")) if isinstance(payload, dict) else ""
     return BuildResult(workflow=workflow, notes=notes)
+
+
+# --- Rule-based fallback (demo mode, no LLM key needed) ----------------------------------------
+
+# keyword -> (node type, display name). Order matters: first match wins for the trigger/output.
+_TRIGGERS: list[tuple[tuple[str, ...], str, str]] = [
+    (("schedule", "every", "daily", "morning", "cron", "hour"), "n8n-nodes-base.scheduleTrigger", "Schedule"),
+    (("form",), "n8n-nodes-base.formTrigger", "Form Submitted"),
+    (("chat", "message arrives"), "@n8n/n8n-nodes-langchain.chatTrigger", "Chat Message"),
+    (("webhook", "incoming", "request", "http"), "n8n-nodes-base.webhook", "Webhook"),
+]
+_OUTPUTS: list[tuple[tuple[str, ...], str, str]] = [
+    (("gmail",), "n8n-nodes-base.gmail", "Send Gmail"),
+    (("email", "mail", "e-mail"), "n8n-nodes-base.emailSend", "Send Email"),
+    (("telegram",), "n8n-nodes-base.telegram", "Send Telegram"),
+    (("slack",), "n8n-nodes-base.slack", "Post to Slack"),
+    (("sheet", "spreadsheet"), "n8n-nodes-base.googleSheets", "Update Sheet"),
+    (("http", "api", "fetch", "call"), "n8n-nodes-base.httpRequest", "HTTP Request"),
+]
+
+
+def _node(name: str, ntype: str, x: int) -> dict[str, Any]:
+    return {"name": name, "type": ntype, "typeVersion": 1, "position": [x, 300], "parameters": {}}
+
+
+def _match(text: str, table: list[tuple[tuple[str, ...], str, str]]) -> tuple[str, str] | None:
+    for keys, ntype, label in table:
+        if any(k in text for k in keys):
+            return ntype, label
+    return None
+
+
+def heuristic_build(current: dict[str, Any] | None, instruction: str) -> BuildResult:
+    """A no-LLM fallback: assemble a simple linear workflow from keywords in the instruction."""
+    text = instruction.lower()
+
+    if current and current.get("nodes"):
+        # Extend the existing workflow: add an output/processing node wired after the last node.
+        wf = json.loads(json.dumps(current))
+        out = _match(text, _OUTPUTS) or ("n8n-nodes-base.set", "Process")
+        last = max(wf["nodes"], key=lambda n: (n.get("position") or [0, 0])[0])
+        new = _node(out[1], out[0], (last.get("position") or [0, 300])[0] + 220)
+        wf["nodes"].append(new)
+        wf.setdefault("connections", {}).setdefault(last["name"], {}).setdefault("main", [[]])
+        wf["connections"][last["name"]]["main"][0].append({"node": new["name"], "type": "main", "index": 0})
+        return BuildResult(workflow=wf, notes=f"Added a '{out[1]}' node after '{last['name']}'.")
+
+    # Build a fresh linear workflow: trigger -> (process) -> output.
+    trig = _match(text, _TRIGGERS) or ("n8n-nodes-base.manualTrigger", "When clicked")
+    steps = [_node(trig[1], trig[0], 240)]
+    if any(k in text for k in ("summar", "ai", "generate", "classif", "write", "extract", "process")):
+        steps.append(_node("Prepare / AI step", "n8n-nodes-base.set", 460))
+    out = _match(text, _OUTPUTS)
+    if out:
+        steps.append(_node(out[1], out[0], 240 + 220 * len(steps)))
+
+    connections: dict[str, Any] = {}
+    for a, b in zip(steps, steps[1:]):
+        connections[a["name"]] = {"main": [[{"node": b["name"], "type": "main", "index": 0}]]}
+
+    name = instruction.strip()[:60] or "New workflow"
+    workflow = {"name": name, "nodes": steps, "connections": connections}
+    return BuildResult(workflow=workflow, notes=f"Built a {len(steps)}-step workflow from your description.")
