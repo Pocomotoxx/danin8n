@@ -4,11 +4,13 @@ import { Background, Controls, ReactFlow } from "@xyflow/react";
 import {
   buildWorkflow,
   customize,
+  generateAg2,
   getIntake,
   getTemplate,
   inspect,
   listTemplates,
   simulate,
+  type Ag2AgentInput,
   type CustomizeResult,
   type Inspection,
   type N8nWorkflow,
@@ -48,6 +50,12 @@ export default function App() {
   const [buildModel, setBuildModel] = useState("anthropic/claude-sonnet-4-20250514");
   const [intake, setIntake] = useState<{ env: string; checklist: string } | null>(null);
   const [sim, setSim] = useState<SimStep[] | null>(null);
+  const [ag2Name, setAg2Name] = useState("My Agent Team");
+  const [ag2Model, setAg2Model] = useState("gpt-4o");
+  const [ag2Agents, setAg2Agents] = useState<Ag2AgentInput[]>([
+    { name: "assistant", system_message: "You are a helpful assistant." },
+  ]);
+  const [ag2Result, setAg2Result] = useState<Record<string, unknown> | null>(null);
 
   const tr = (key: Parameters<typeof t>[1], vars?: Record<string, string | number>) => t(lang, key, vars);
   const effKey = (e: string): Parameters<typeof t>[1] =>
@@ -151,6 +159,19 @@ export default function App() {
     a.remove();
     URL.revokeObjectURL(url);
     setStatus({ kind: "info", msg: tr("stDownloaded", { file: filename }) });
+  };
+
+  const doAg2 = async () => {
+    setBusy(true);
+    try {
+      const res = await generateAg2(ag2Name, "", ag2Agents, ag2Model);
+      setAg2Result(res.workflow);
+      setStatus({ kind: "ok", msg: tr("stAg2", { type: res.type }) });
+    } catch (e) {
+      setStatus({ kind: "err", msg: String(e) });
+    } finally {
+      setBusy(false);
+    }
   };
 
   const doSimulate = async () => {
@@ -311,6 +332,41 @@ export default function App() {
               </button>
             </>
           )}
+
+          <div className="section" style={{ marginTop: 18, borderTop: "1px solid #e2e8f0", paddingTop: 12 }}>
+            {tr("ag2Title")}
+          </div>
+          <label>{tr("ag2Name")}
+            <input value={ag2Name} onChange={(e) => setAg2Name(e.target.value)} />
+          </label>
+          <label>{tr("model")}
+            <input value={ag2Model} onChange={(e) => setAg2Model(e.target.value)} />
+          </label>
+          {ag2Agents.map((a, i) => (
+            <div key={i} className="card">
+              <input
+                placeholder={tr("ag2AgentName")}
+                value={a.name}
+                onChange={(e) => setAg2Agents(ag2Agents.map((x, j) => (j === i ? { ...x, name: e.target.value } : x)))}
+              />
+              <textarea
+                placeholder={tr("ag2SystemMsg")}
+                value={a.system_message}
+                onChange={(e) => setAg2Agents(ag2Agents.map((x, j) => (j === i ? { ...x, system_message: e.target.value } : x)))}
+              />
+              {ag2Agents.length > 1 && (
+                <button onClick={() => setAg2Agents(ag2Agents.filter((_, j) => j !== i))}>{tr("ag2Remove")}</button>
+              )}
+            </div>
+          ))}
+          <div className="row">
+            <button onClick={() => setAg2Agents([...ag2Agents, { name: "", system_message: "" }])}>
+              {tr("ag2AddAgent")}
+            </button>
+            <button className="primary" disabled={busy} onClick={doAg2} style={{ flex: 1 }}>
+              {tr("ag2Generate")}
+            </button>
+          </div>
         </aside>
 
         <main className="canvas">
@@ -321,6 +377,19 @@ export default function App() {
         </main>
 
         <aside className="panel right">
+          {ag2Result && (
+            <>
+              <div className="section">
+                {tr("ag2ResultTitle")}
+                <span>
+                  <button onClick={() => download("ag2-workflow.json", JSON.stringify(ag2Result, null, 2), "application/json")}>{tr("dlJson")}</button>{" "}
+                  <button onClick={() => copyText(JSON.stringify(ag2Result, null, 2), "JSON")}>{tr("copyJson")}</button>
+                </span>
+              </div>
+              <p className="hint">{tr("ag2Hint")}</p>
+              <pre className="code" style={{ maxHeight: "45vh" }}>{JSON.stringify(ag2Result, null, 2)}</pre>
+            </>
+          )}
           {sim && (
             <>
               <div className="section">{tr("previewTitle")}</div>
@@ -373,7 +442,7 @@ export default function App() {
               <pre className="code">{JSON.stringify(result.workflow, null, 2)}</pre>
             </>
           ) : (
-            !intake && !sim && <p className="hint">{tr("rightPlaceholder")}</p>
+            !intake && !sim && !ag2Result && <p className="hint">{tr("rightPlaceholder")}</p>
           )}
         </aside>
       </div>

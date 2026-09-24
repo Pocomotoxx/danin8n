@@ -75,6 +75,19 @@ export const STRINGS: Record<string, Entry> = {
   "effSide-effect": { en: "sends/writes", hu: "küld/ír" },
   effAi: { en: "AI", hu: "AI" },
   effRead: { en: "reads", hu: "olvas" },
+  ag2Title: { en: "🤖 AG2 Studio agents", hu: "🤖 AG2 Studio agentek" },
+  ag2Name: { en: "Workflow name", hu: "Workflow neve" },
+  ag2AddAgent: { en: "+ add agent", hu: "+ agent" },
+  ag2AgentName: { en: "agent name", hu: "agent neve" },
+  ag2SystemMsg: { en: "system message (what this agent does)", hu: "system message (mit csinál ez az agent)" },
+  ag2Generate: { en: "Generate AG2 workflow", hu: "AG2 workflow generálása" },
+  ag2ResultTitle: { en: "🤖 AG2 Studio workflow", hu: "🤖 AG2 Studio workflow" },
+  ag2Hint: {
+    en: "Copy or download this JSON and import it in the AG2 Studio (app.ag2.ai). Set your model's API key there.",
+    hu: "Másold vagy töltsd le ezt a JSON-t, és importáld az AG2 Studióba (app.ag2.ai). A modell API-kulcsát ott állítsd be.",
+  },
+  ag2Remove: { en: "remove", hu: "törlés" },
+  stAg2: { en: "AG2 workflow generated ({type}).", hu: "AG2 workflow kész ({type})." },
 };
 
 export function t(lang: Lang, key: keyof typeof STRINGS, vars?: Record<string, string | number>): string {

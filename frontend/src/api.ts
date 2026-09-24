@@ -84,3 +84,15 @@ export interface SimStep {
 
 export const simulate = (workflow: N8nWorkflow) =>
   post<{ steps: SimStep[] }>("/api/simulate", { workflow });
+
+export interface Ag2AgentInput {
+  name: string;
+  system_message: string;
+}
+
+export const generateAg2 = (
+  name: string,
+  description: string,
+  agents: Ag2AgentInput[],
+  model: string,
+) => post<{ workflow: Record<string, unknown>; type: string }>("/api/ag2", { name, description, agents, model });

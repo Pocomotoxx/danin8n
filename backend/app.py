@@ -19,6 +19,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
+from .ag2 import AG2Agent, AG2Error, build_ag2_workflow
 from .build import build_workflow, heuristic_build
 from .customize import AI_PREFIX, customize_workflow
 from .intake import build_intake, render_checklist, render_env, to_dict
@@ -114,6 +115,37 @@ def customize(req: CustomizeRequest) -> dict[str, Any]:
 def customize_preview(req: CustomizeRequest) -> dict[str, Any]:
     result = customize_workflow(req.workflow, req.profile, completer=EchoCompleter())
     return {"workflow": result.workflow, "report": {"ai_filled": result.report.ai_filled}}
+
+
+# --- AG2 Studio workflow generator ------------------------------------------------------------
+
+
+class AG2AgentIn(BaseModel):
+    name: str
+    system_message: str = ""
+
+
+class AG2Request(BaseModel):
+    name: str = ""
+    description: str = ""
+    agents: list[AG2AgentIn] = []
+    model: str = "gpt-4o"
+    max_round: int = 10
+
+
+@app.post("/api/ag2")
+def ag2(req: AG2Request) -> dict[str, Any]:
+    try:
+        workflow = build_ag2_workflow(
+            req.name,
+            req.description,
+            [AG2Agent(name=a.name, system_message=a.system_message) for a in req.agents],
+            model=req.model,
+            max_round=req.max_round,
+        )
+    except AG2Error as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    return {"workflow": workflow, "type": workflow["type"]}
 
 
 # --- Dry-run preview (sandbox) ----------------------------------------------------------------
