@@ -16,6 +16,8 @@ steps go through LiteLLM (any provider).
 4. **Data intake** — generate a checklist and `.env` template of everything the workflow needs
    (API keys, e-mails, passwords, credentials), with secrets clearly flagged.
 5. **Export** — copy or download the finished workflow as `.json` and import it into n8n.
+6. **AG2 Studio** — also design agent teams and export a workflow to paste into
+   [AG2 Studio](https://app.ag2.ai/) (a free, open-source path for learning multi-agent design).
 
 ## Documentation (bilingual)
 

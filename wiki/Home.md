@@ -22,7 +22,8 @@ passwords) live only in n8n, never in this tool.
 2. **[Using the tool](Using-the-Tool.md)** — templates, Build with AI, customize, data intake.
 3. **[n8n setup, step by step](n8n-Setup.md)** — import the workflow and create the credentials.
 4. **[Providers](Providers.md)** — set an LLM key for the AI features (any provider).
-5. **[Troubleshooting](Troubleshooting.md)** — common problems.
+5. **[AG2 Studio](AG2-Studio.md)** — design agent teams and export them to app.ag2.ai (free path).
+6. **[Troubleshooting](Troubleshooting.md)** — common problems.
 
 ## Typical flow
 

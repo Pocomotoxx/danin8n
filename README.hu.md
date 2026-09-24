@@ -16,6 +16,8 @@ az n8n; a választható AI-lépések a LiteLLM-en át bármely providert elérne
 4. **Adatbekérő** — checklistet és `.env` sablont készít mindenről, amit a workflow igényel
    (API-kulcsok, e-mailek, jelszavak, credentialök), a titkokat jól láthatóan megjelölve.
 5. **Export** — a kész workflow-t `.json`-ként kimásolod vagy letöltöd, és importálod az n8n-be.
+6. **AG2 Studio** — agent-csapatokat is tervezhetsz, és exportálhatsz egy workflow-t, amit az
+   [AG2 Studióba](https://app.ag2.ai/) illesztesz (ingyenes, nyílt forrású tanulópálya a multi-agent tervezéshez).
 
 ## Dokumentáció (kétnyelvű)
 

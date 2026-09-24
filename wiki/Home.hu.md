@@ -23,7 +23,8 @@ Az eszköz előkészíti a workflow-t és egy **adatbekérő checklistet**; **az
 2. **[Az eszköz használata](Using-the-Tool.hu.md)** — sablonok, Build with AI, testreszabás, adatbekérő.
 3. **[n8n beállítás lépésről lépésre](n8n-Setup.hu.md)** — a workflow importálása és a credentialök létrehozása.
 4. **[Providerek](Providers.hu.md)** — LLM-kulcs beállítása az AI-funkciókhoz (bármely provider).
-5. **[Hibaelhárítás](Troubleshooting.hu.md)** — gyakori problémák.
+5. **[AG2 Studio](AG2-Studio.hu.md)** — agent-csapatok tervezése és exportja az app.ag2.ai-ra (ingyenes út).
+6. **[Hibaelhárítás](Troubleshooting.hu.md)** — gyakori problémák.
 
 ## Tipikus folyamat
 
