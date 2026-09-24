@@ -28,8 +28,11 @@ használd a **Build with AI**-t, vagy pipáld be a **Fill with an LLM** opciót.
 
 ## Nincs kulcsod?
 
-Minden más kulcs nélkül működik: a sablonok, a cégadatok betöltése a `[[mező]]` helyekre, az
-adatbekérő checklist és az export. Csak a `[[ai: …]]` szöveg és az AI-builder igényel providert.
+Minden működik kulcs nélkül. A sablonok, a cégadatok betöltése a `[[mező]]` helyekre, az adatbekérő
+checklist, az előnézet-sandbox és az export nem igényel providert. A **Build with AI** is működik
+kulcs nélkül: ilyenkor **demo-módra** vált, és az utasításod kulcsszavaiból rak össze egy egyszerű
+workflow-t (indító → feldolgozás → kimenet). A provider-kulcs csak okosabbá teszi a buildert, és
+kitölti a `[[ai: …]]` szövegeket.
 
 A teljes modell-listát a [LiteLLM providers dokumentáció](https://docs.litellm.ai/docs/providers)
 tartalmazza.

@@ -28,7 +28,10 @@ Then in the tool, set the **model** field (e.g. `anthropic/claude-sonnet-4-20250
 
 ## No key?
 
-Everything else works without a key: templates, filling company data into `[[field]]` placeholders,
-the data-intake checklist, and export. Only `[[ai: …]]` text and the AI builder need a provider.
+Everything works without a key. Templates, filling company data into `[[field]]` placeholders, the
+data-intake checklist, the preview sandbox, and export need no provider. **Build with AI** also works
+without a key: it falls back to a **demo mode** that assembles a simple workflow from the keywords in
+your instruction (trigger → processing → output). A provider key only makes the builder smarter and
+fills `[[ai: …]]` text.
 
 See the full model list at the [LiteLLM providers docs](https://docs.litellm.ai/docs/providers).
